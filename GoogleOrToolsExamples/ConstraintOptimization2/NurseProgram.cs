@@ -1,6 +1,6 @@
 ﻿namespace EmployeeScheduling
 {
-    class Program
+    class NurseProgram
     {
         static void Main(string[] args)
         {

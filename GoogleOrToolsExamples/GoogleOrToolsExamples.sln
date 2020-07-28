@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConstraintOptimization1", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConstraintOptimization2", "ConstraintOptimization2\ConstraintOptimization2.csproj", "{92AA96B6-E48B-46F2-A476-1C65C4ABB99B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConstraintOptimization3", "ConstraintOptimization3\ConstraintOptimization3.csproj", "{65D45995-B36A-4F51-9927-245ADE15EA38}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{92AA96B6-E48B-46F2-A476-1C65C4ABB99B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{92AA96B6-E48B-46F2-A476-1C65C4ABB99B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{92AA96B6-E48B-46F2-A476-1C65C4ABB99B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{65D45995-B36A-4F51-9927-245ADE15EA38}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{65D45995-B36A-4F51-9927-245ADE15EA38}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{65D45995-B36A-4F51-9927-245ADE15EA38}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{65D45995-B36A-4F51-9927-245ADE15EA38}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

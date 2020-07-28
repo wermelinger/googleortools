@@ -6,8 +6,6 @@ using Google.OrTools.Sat;
 
 namespace EmployeeScheduling
 {
-
-
     public class NursesSat
     {
         public static void Start()
