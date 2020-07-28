@@ -3,7 +3,7 @@ using Google.OrTools.ConstraintSolver;
 
 namespace ConstraintOptimization
 {
-    class Program
+    class CpSimple
     {
         static void Main(string[] args)
         {
