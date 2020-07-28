@@ -134,23 +134,51 @@ namespace EmployeeScheduling
 
             // Creates the solver and solve.
             CpSolver solver = new CpSolver();
+            
             // Display a few solutions picked at random.
             HashSet<int> to_print = new HashSet<int>();
-            to_print.Add(859);
-            to_print.Add(2034);
-            to_print.Add(5091);
-            to_print.Add(7003);
+            // to_print.Add(859);
+            // to_print.Add(2034);
+            // to_print.Add(5091);
             NurseSolutionObserver cb = new NurseSolutionObserver(
                 shift, num_nurses, num_days, num_shifts, to_print);
             CpSolverStatus status = solver.SearchAllSolutions(model, cb);
 
-            // Statistics.
+            PrintSolution(num_nurses, num_shifts, num_days, shift, solver);
+
+            PrintStatistics(solver, cb, status);
+        }
+
+        private static void PrintStatistics(CpSolver solver, NurseSolutionObserver cb, CpSolverStatus status)
+        {
+            Console.WriteLine("");
+            Console.WriteLine("");
             Console.WriteLine("Statistics");
             Console.WriteLine(String.Format("  - solve status    : {0}", status));
             Console.WriteLine("  - conflicts       : " + solver.NumConflicts());
             Console.WriteLine("  - branches        : " + solver.NumBranches());
             Console.WriteLine("  - wall time       : " + solver.WallTime() + " ms");
             Console.WriteLine("  - #solutions      : " + cb.SolutionCount());
+        }
+
+        private static void PrintSolution(int num_nurses, int num_shifts, int num_days, IntVar[,,] shift, CpSolver solver)
+        {
+            for (int d = 0; d < num_days; d++)
+            {
+                Console.WriteLine($"Day {d}");
+                for (int s = 1; s < num_shifts; s++)
+                {
+                    int[] value = new int[num_nurses];
+                    for (int n = 0; n < num_nurses; n++)
+                    {
+                        value[n] = (int)solver.Value(shift[n, d, s]);
+
+                    }
+
+                    int nurse = value.ToList().IndexOf(1);
+                    Console.WriteLine($"Shift {s}: Nurse {nurse} is working");
+                }
+            }
         }
     }
 }
