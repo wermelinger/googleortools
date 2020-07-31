@@ -7,93 +7,91 @@ namespace ConstraintOptimization3
 {
     public class SudokuSolver
     {
-        public Sudoku Solve(Sudoku s)
+        public Sudoku Solve(Sudoku sudoku)
         {
             CpModel model = new CpModel();
 
-            // Initialize field (constraint values to 1-9)
-            IntVar[][] tab_s = new IntVar[9][];
-            for (int i = 0; i < tab_s.Length; i++)
+            // Initialize field 9x9
+            var field = new IntVar[9][];
+            for (int x = 0; x < field.Length; x++)
             {
-                tab_s[i] = new IntVar[9];
+                field[x] = new IntVar[9];
             }
 
-            for (int i = 0; i < tab_s.Length; i++)
+            // Constraint: Every cell contains a number 1-9
+            for (int x = 0; x < field.Length; x++)
             {
-                for (int j = 0; j < tab_s[i].Length; j++)
+                for (int y = 0; y < field[x].Length; y++)
                 {
-                    tab_s[i][j] = model.NewIntVar(1, 9, "grid" + "(" + i + "," + j + ")");
+                    field[x][y] = model.NewIntVar(1, 9, "grid" + "(" + x + "," + y + ")");
                 }
             }
 
-            // Constraints all differents on rows 
-            for (int i = 0; i < tab_s.Length; i++)
+            // Constraints: all cells in each column contain a different value
+            for (int x = 0; x < field.Length; x++)
             {
-                model.AddAllDifferent(tab_s[i]);
+                model.AddAllDifferent(field[x]);
             }
 
-            // Constraints all differents on colums 
-            IntVar[] tpm = new IntVar[9];
-            for (int j = 0; j < tab_s[0].Length; j++)
+            // Constraint: all cells in each row contain a different value
+            for (int y = 0; y < field[0].Length; y++)
             {
-                for (int i = 0; i < tab_s.Length; i++)
+                var row = new IntVar[9];
+                for (int x = 0; x < field.Length; x++)
                 {
-                    tpm[i] = tab_s[i][j];
+                    row[x] = field[x][y];
                 }
-                model.AddAllDifferent(tpm);
-                Array.Clear(tpm, 0, tpm.Length);
+                model.AddAllDifferent(row);
             }
 
-            // Constraint all differents on cells 
-            List<IntVar> ls = new List<IntVar>();
-            for (int i = 0; i < 7; i += 3)
+            // Constraint: all cells in each region contain a different value
+            for (int xBegin = 0; xBegin < 7; xBegin += 3)
             {
-                for (int j = 0; j < 7; j += 3)
+                for (int yBegin = 0; yBegin < 7; yBegin += 3)
                 {
-                    for (int k = 0; k < 3; k++)
+                    List<IntVar> region = new List<IntVar>();
+                    for (int xOffset = 0; xOffset < 3; xOffset++)
                     {
-                        for (int l = 0; l < 3; l++)
+                        for (int yOffset = 0; yOffset < 3; yOffset++)
                         {
-                            ls.Add(tab_s[i + k][j + l]);
+                            region.Add(field[xBegin + xOffset][yBegin + yOffset]);
                         }
-
                     }
-                    model.AddAllDifferent(ls);
-                    ls.Clear();
+                    model.AddAllDifferent(region);
                 }
             }
 
-            // Initial Value
-            for (int i = 0; i < 9; i++)
+            // Load data
+            for (int x = 0; x < 9; x++)
             {
-                for (int j = 0; j < 9; j++)
+                for (int y = 0; y < 9; y++)
                 {
-                    if (s.GetCell(i, j) != 0)
+                    if (sudoku.GetCell(x, y) != 0)
                     {
-                        model.Add(tab_s[i][j] == s.GetCell(i, j));
+                        model.Add(field[x][y] == sudoku.GetCell(x, y));
                     }
                 }
             }
 
             // Solve
-            CpSolver solver = new CpSolver();
-            CpSolverStatus status = solver.Solve(model);
-            
-            List<int> solution = new List<int>();
-            if (status == CpSolverStatus.Feasible || status == CpSolverStatus.Optimal)
-            {
-                for (int i = 0; i < 9; i++)
-                {
-                    for (int j = 0; j < 9; j++)
-                    {
+            var solver = new CpSolver();
+            var status = solver.Solve(model);
 
-                        solution.Add((int)solver.Value(tab_s[i][j]));
+            List<int> solution = new List<int>();
+            if (status == CpSolverStatus.Optimal)
+            {
+                for (int y = 0; y < 9; y++)
+                {
+                    for (int x = 0; x < 9; x++)
+                    {
+                        solution.Add((int)solver.Value(field[x][y]));
                     }
                 }
+
+                return new Sudoku(solution);
             }
 
-            Sudoku resolution = new Sudoku(solution);
-            return resolution;
+            throw new InvalidOperationException("Sudoku not solvable");
         }
     }
 }
