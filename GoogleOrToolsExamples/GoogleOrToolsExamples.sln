@@ -5,11 +5,11 @@ VisualStudioVersion = 16.0.30320.27
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LinearOptimization", "LinearOptimization\LinearOptimization.csproj", "{89D5E06B-0617-4FE3-BE22-979A57BE7E89}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConstraintOptimization1", "ConstraintOptimization1\ConstraintOptimization1.csproj", "{600C2B50-3603-46D1-B7C8-355A6858F9A0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConstraintOptimizationSimple", "ConstraintOptimizationSimple\ConstraintOptimizationSimple.csproj", "{600C2B50-3603-46D1-B7C8-355A6858F9A0}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConstraintOptimization2", "ConstraintOptimization2\ConstraintOptimization2.csproj", "{92AA96B6-E48B-46F2-A476-1C65C4ABB99B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConstraintOptimization3", "ConstraintOptimization3\ConstraintOptimization3.csproj", "{65D45995-B36A-4F51-9927-245ADE15EA38}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConstraintOptimization3", "ConstraintOptimization3\ConstraintOptimization3.csproj", "{65D45995-B36A-4F51-9927-245ADE15EA38}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
