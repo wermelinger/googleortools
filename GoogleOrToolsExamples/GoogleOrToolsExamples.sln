@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.30320.27
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConstraintOptimizationSimple", "ConstraintOptimizationSimple\ConstraintOptimizationSimple.csproj", "{600C2B50-3603-46D1-B7C8-355A6858F9A0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConstraintOptimization3", "ConstraintOptimization3\ConstraintOptimization3.csproj", "{65D45995-B36A-4F51-9927-245ADE15EA38}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConstraintOptimizationSudoku", "ConstraintOptimizationSudoku\ConstraintOptimizationSudoku.csproj", "{65D45995-B36A-4F51-9927-245ADE15EA38}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

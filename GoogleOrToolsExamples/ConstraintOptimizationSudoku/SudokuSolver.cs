@@ -1,16 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using ConstraintOptimization3.Data;
+using ConstraintOptimizationSudoku.Data;
 using Google.OrTools.Sat;
 
-namespace ConstraintOptimization3
+namespace ConstraintOptimizationSudoku
 {
     public class SudokuSolver
     {
         public Sudoku Solve(Sudoku sudoku)
         {
-            CpModel model = new CpModel();
-
             // Initialize field 9x9
             var field = new IntVar[9][];
             for (int x = 0; x < field.Length; x++)
@@ -18,19 +16,24 @@ namespace ConstraintOptimization3
                 field[x] = new IntVar[9];
             }
 
+            var model = new CpModel();
+
             // Constraint: Every cell contains a number 1-9
             for (int x = 0; x < field.Length; x++)
             {
                 for (int y = 0; y < field[x].Length; y++)
                 {
-                    field[x][y] = model.NewIntVar(1, 9, "grid" + "(" + x + "," + y + ")");
+                    // TODO: Add constraint for each field
+                    field[x][y] = model.NewIntVar(1, 9, $"{x}-{y}");
                 }
             }
 
             // Constraints: all cells in each column contain a different value
             for (int x = 0; x < field.Length; x++)
             {
-                model.AddAllDifferent(field[x]);
+                // hint: 2 dimensional array -> list of y-positions must be different 
+                var yPositions = field[x];
+                model.AddAllDifferent(yPositions);
             }
 
             // Constraint: all cells in each row contain a different value
@@ -49,7 +52,7 @@ namespace ConstraintOptimization3
             {
                 for (int yBegin = 0; yBegin < 7; yBegin += 3)
                 {
-                    List<IntVar> region = new List<IntVar>();
+                    var region = new List<IntVar>();
                     for (int xOffset = 0; xOffset < 3; xOffset++)
                     {
                         for (int yOffset = 0; yOffset < 3; yOffset++)
@@ -61,7 +64,7 @@ namespace ConstraintOptimization3
                 }
             }
 
-            // Load data
+            // Add constraints of our specific sudoku
             for (int x = 0; x < 9; x++)
             {
                 for (int y = 0; y < 9; y++)
@@ -77,7 +80,7 @@ namespace ConstraintOptimization3
             var solver = new CpSolver();
             var status = solver.Solve(model);
 
-            List<int> solution = new List<int>();
+            var solution = new List<int>();
             if (status == CpSolverStatus.Optimal)
             {
                 for (int y = 0; y < 9; y++)

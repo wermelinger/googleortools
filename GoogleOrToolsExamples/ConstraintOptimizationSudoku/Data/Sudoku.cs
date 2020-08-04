@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace ConstraintOptimization3.Data
+namespace ConstraintOptimizationSudoku.Data
 {
     public class Sudoku
     {

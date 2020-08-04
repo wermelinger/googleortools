@@ -1,47 +1,43 @@
-﻿using ConstraintOptimization3.Data;
+﻿// STEP 1: Clean SudokuProgram / SudokuSolver
+
+// PASTE: 
+
+using ConstraintOptimization3.Data;
 using System;
 
-namespace ConstraintOptimization3
+namespace ConstraintOptimizationSudoku
 {
     class SudokuProgram
     {
         static void Main(string[] args)
         {
-            int[] initialGrid = new int[] { 0, 4, 0,   0, 6, 0,   0, 1, 0,
-                                             7, 0, 0,   5, 0, 3,   0, 0, 2,
-                                             0, 0, 3,   0, 2, 0,   7, 0, 0,
+            int[] initialGrid = { 0, 4, 0,   0, 6, 0,   0, 1, 0,
+                                  7, 0, 0,   5, 0, 3,   0, 0, 2,
+                                  0, 0, 3,   0, 2, 0,   7, 0, 0,
 
-                                             0, 9, 0,   0, 7, 0,   0, 5, 0,
-                                             1, 0, 2,   8, 0, 6,   4, 0, 3,
-                                             0, 6, 0,   0, 3, 0,   0, 2, 0,
+                                  0, 9, 0,   0, 7, 0,   0, 5, 0,
+                                  1, 0, 2,   8, 0, 6,   4, 0, 3,
+                                  0, 6, 0,   0, 3, 0,   0, 2, 0,
 
-                                             0, 0, 4,   0, 1, 0,   6, 0, 0,
-                                             6, 0, 0,   7, 0, 2,   0, 0, 1,
-                                             0, 7, 0,   0, 5, 0,   0, 3, 0 };
+                                  0, 0, 4,   0, 1, 0,   6, 0, 0,
+                                  6, 0, 0,   7, 0, 2,   0, 0, 1,
+                                  0, 7, 0,   0, 5, 0,   0, 3, 0 };
 
-            Sudoku sudoku = new Sudoku(initialGrid);
-            Console.WriteLine(sudoku.ToString());
-
-            SudokuSolver solver = new SudokuSolver();
-            Sudoku solution = solver.Solve(sudoku);
+            var sudoku = new Sudoku(initialGrid);
+            var solver = new SudokuSolver();
+            var solution = solver.Solve(sudoku);
 
             Console.WriteLine(solution.ToString());
-			
-			
-// => Sudoku helper class 			
         }
     }
 }
-
-
+// => Helper classes for Sudoku and SudokuSolver
 
 
 ================================================================
 
 
-
-            CpModel model = new CpModel();
-
+// PASTE
             // Initialize field 9x9
             var field = new IntVar[9][];
             for (int x = 0; x < field.Length; x++)
@@ -49,20 +45,48 @@ namespace ConstraintOptimization3
                 field[x] = new IntVar[9];
             }
 
+// => Initialize field variables for the solver: two dimensional array (jagged)
+
+
+
+
+
+
+
+
+// PASTE
+            var model = new CpModel();
+
             // Constraint: Every cell contains a number 1-9
             for (int x = 0; x < field.Length; x++)
             {
                 for (int y = 0; y < field[x].Length; y++)
                 {
-                    field[x][y] = model.NewIntVar(1, 9, "grid" + "(" + x + "," + y + ")");
+                    // TODO: Add constraint for each field
                 }
             }
+
+
+
+
+
+// TYPE
+                    field[x][y] = model.NewIntVar(1, 9, $"{x}-{y}");
+
+
+
+
+
+
+
+
+// PASTE
 
             // Solve
             var solver = new CpSolver();
             var status = solver.Solve(model);
 
-            List<int> solution = new List<int>();
+            var solution = new List<int>();
             if (status == CpSolverStatus.Optimal)
             {
                 for (int y = 0; y < 9; y++)
@@ -75,29 +99,7 @@ namespace ConstraintOptimization3
 
                 return new Sudoku(solution);
             }
-// => Just takes the first feasible solution. Number of possible solution would be this big number from ppt
-
-
-
-
-
-
-
-
-
-
-            // Load data
-            for (int x = 0; x < 9; x++)
-            {
-                for (int y = 0; y < 9; y++)
-                {
-                    if (sudoku.GetCell(x, y) != 0)
-                    {
-                        model.Add(field[x][y] == sudoku.GetCell(x, y));
-                    }
-                }
-            }
-// => Load the data -> still no other rules applied; lets enhance model and add constraints
+// => RUN: Just takes the first feasible solution. Number of possible solution would be this big number from ppt
 
 
 
@@ -109,12 +111,20 @@ namespace ConstraintOptimization3
 
 
 
+
+
+
+
+
+// PASTE
             // Constraints: all cells in each column contain a different value
             for(int x = 0; x < field.Length;x++)
             {
-                model.AddAllDifferent(field[x]);
+                // hint: 2 dimensional array -> list of y-positions must be different 
+                var yPositions = field[x];
+                model.AddAllDifferent(yPositions);
             }
-// => 	At least every column is correct. rows / regions not		
+// => RUN	At least every column is correct. rows / regions not		
 			
 			
 			
@@ -127,7 +137,7 @@ namespace ConstraintOptimization3
 			
 	
 
-
+// PASTE
             // Constraint: all cells in each row contain a different value
             for (int y = 0; y < field[0].Length; y++)
             {
@@ -138,7 +148,7 @@ namespace ConstraintOptimization3
                 }
                 model.AddAllDifferent(row);
             }
-// => All columns and rows correct			
+// => RUN All columns and rows correct			
 
 
 
@@ -149,13 +159,13 @@ namespace ConstraintOptimization3
 
 
 
-
+// PASTE
             // Constraint: all cells in each region contain a different value
             for (int xBegin = 0; xBegin < 7; xBegin += 3)
             {
                 for (int yBegin = 0; yBegin < 7; yBegin += 3)
                 {
-                    List<IntVar> region = new List<IntVar>();
+                    var region = new List<IntVar>();
                     for (int xOffset = 0; xOffset < 3; xOffset++)
                     {
                         for (int yOffset = 0; yOffset < 3; yOffset++)
@@ -166,27 +176,51 @@ namespace ConstraintOptimization3
                     model.AddAllDifferent(region);
                 }
             }
-// => yay			
+// => RUN
+
+
+
+
+
+
+
+
+
+// PASTE
+            // Add constraints of our specific sudoku
+            for (int x = 0; x < 9; x++)
+            {
+                for (int y = 0; y < 9; y++)
+                {
+                    if (sudoku.GetCell(x, y) != 0)
+                    {
+                        model.Add(field[x][y] == sudoku.GetCell(x, y));
+                    }
+                }
+            }
+// => RUN Load the data 
+
+
+
+
+			
 
 
 
 
 ================================================================
 
-
 using System;
 using System.Collections.Generic;
 using ConstraintOptimization3.Data;
 using Google.OrTools.Sat;
 
-namespace ConstraintOptimization3
+namespace ConstraintOptimizationSudoku
 {
     public class SudokuSolver
     {
         public Sudoku Solve(Sudoku sudoku)
         {
-            CpModel model = new CpModel();
-
             // Initialize field 9x9
             var field = new IntVar[9][];
             for (int x = 0; x < field.Length; x++)
@@ -194,19 +228,24 @@ namespace ConstraintOptimization3
                 field[x] = new IntVar[9];
             }
 
+            var model = new CpModel();
+
             // Constraint: Every cell contains a number 1-9
             for (int x = 0; x < field.Length; x++)
             {
                 for (int y = 0; y < field[x].Length; y++)
                 {
-                    field[x][y] = model.NewIntVar(1, 9, "grid" + "(" + x + "," + y + ")");
+                    // TODO: Add constraint for each field
+                    field[x][y] = model.NewIntVar(1, 9, $"{x}-{y}");
                 }
             }
-            
+
             // Constraints: all cells in each column contain a different value
-            for(int x = 0; x < field.Length;x++)
+            for (int x = 0; x < field.Length; x++)
             {
-                model.AddAllDifferent(field[x]);
+                // hint: 2 dimensional array -> list of y-positions must be different 
+                var yPositions = field[x];
+                model.AddAllDifferent(yPositions);
             }
 
             // Constraint: all cells in each row contain a different value
@@ -219,13 +258,13 @@ namespace ConstraintOptimization3
                 }
                 model.AddAllDifferent(row);
             }
-            
+
             // Constraint: all cells in each region contain a different value
             for (int xBegin = 0; xBegin < 7; xBegin += 3)
             {
                 for (int yBegin = 0; yBegin < 7; yBegin += 3)
                 {
-                    List<IntVar> region = new List<IntVar>();
+                    var region = new List<IntVar>();
                     for (int xOffset = 0; xOffset < 3; xOffset++)
                     {
                         for (int yOffset = 0; yOffset < 3; yOffset++)
@@ -237,7 +276,7 @@ namespace ConstraintOptimization3
                 }
             }
 
-            // Load data
+            // Add constraints of our specific sudoku
             for (int x = 0; x < 9; x++)
             {
                 for (int y = 0; y < 9; y++)
@@ -253,7 +292,7 @@ namespace ConstraintOptimization3
             var solver = new CpSolver();
             var status = solver.Solve(model);
 
-            List<int> solution = new List<int>();
+            var solution = new List<int>();
             if (status == CpSolverStatus.Optimal)
             {
                 for (int y = 0; y < 9; y++)
@@ -270,4 +309,4 @@ namespace ConstraintOptimization3
             throw new InvalidOperationException("Sudoku not solvable");
         }
     }
-}
+}}
