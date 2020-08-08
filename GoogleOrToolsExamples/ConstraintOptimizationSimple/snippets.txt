@@ -1,4 +1,4 @@
-﻿// STEP 1: Clean CpSimple
+﻿// STEP 1: Clean CpSimple / Set as Startup project
 
 
 // TYPE:
@@ -25,7 +25,8 @@
             // Constraint: Variables different
             model.Add(x != y);
 
-// => Solution space is reduced by 9 possible solutions
+// => Extend and combine constraints 
+//    Solution space is reduced by 9 possible solutions
 			
 
 

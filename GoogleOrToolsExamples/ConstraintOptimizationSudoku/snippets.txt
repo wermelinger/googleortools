@@ -1,9 +1,9 @@
-﻿// STEP 1: Clean SudokuProgram / SudokuSolver
+﻿// STEP 1: Clean SudokuSolver / Set as Startup project
 
-// PASTE: 
+// SHOW: 
 
-using ConstraintOptimization3.Data;
 using System;
+using ConstraintOptimizationSudoku.Data;
 
 namespace ConstraintOptimizationSudoku
 {
@@ -31,21 +31,24 @@ namespace ConstraintOptimizationSudoku
         }
     }
 }
+
 // => Helper classes for Sudoku and SudokuSolver
+// => PPT
 
 
 ================================================================
 
 
 // PASTE
-            // Initialize field 9x9
-            var field = new IntVar[9][];
-            for (int x = 0; x < field.Length; x++)
+            // Initialize fields 9x9
+            var fields = new IntVar[9][];
+            for (int x = 0; x < fields.Length; x++)
             {
-                field[x] = new IntVar[9];
+                fields[x] = new IntVar[9];
             }
 
-// => Initialize field variables for the solver: two dimensional array (jagged)
+// => Initialize fields variables for the solver model: two dimensional array (jagged). 
+//    The variables can be used for constraints and the solver can determine feasible values for them
 
 
 
@@ -58,21 +61,20 @@ namespace ConstraintOptimizationSudoku
             var model = new CpModel();
 
             // Constraint: Every cell contains a number 1-9
-            for (int x = 0; x < field.Length; x++)
+            for (int x = 0; x < 9; x++)
             {
-                for (int y = 0; y < field[x].Length; y++)
+                for (int y = 0; y < 9; y++)
                 {
-                    // TODO: Add constraint for each field
+					// TODO: Add constraint for each field
                 }
-            }
-
-
+            }			
 
 
 
 // TYPE
-                    field[x][y] = model.NewIntVar(1, 9, $"{x}-{y}");
+                fields[x][y] = model.NewIntVar(1, 9, $"{x}-{y}");
 
+// => Create solver variables for each cell and add a constraint 1-9
 
 
 
@@ -85,21 +87,14 @@ namespace ConstraintOptimizationSudoku
             // Solve
             var solver = new CpSolver();
             var status = solver.Solve(model);
-
-            var solution = new List<int>();
             if (status == CpSolverStatus.Optimal)
             {
-                for (int y = 0; y < 9; y++)
-                {
-                    for (int x = 0; x < 9; x++)
-                    {
-                        solution.Add((int)solver.Value(field[x][y]));
-                    }
-                }
-
+                var solution = FieldsHelper.GetFieldValuesFromSolver(solver, fields);
                 return new Sudoku(solution);
             }
+
 // => RUN: Just takes the first feasible solution. Number of possible solution would be this big number from ppt
+//    If we would want to print more feasible solutions, we would again add a callback and let the solver work
 
 
 
@@ -118,18 +113,23 @@ namespace ConstraintOptimizationSudoku
 
 // PASTE
             // Constraints: all cells in each column contain a different value
-            for(int x = 0; x < field.Length;x++)
+            foreach (var column in FieldsHelper.GetColumns(fields))
             {
-                // hint: 2 dimensional array -> list of y-positions must be different 
-                var yPositions = field[x];
-                model.AddAllDifferent(yPositions);
+                // TODO: Add constraint: each value in the column is different
             }
-// => RUN	At least every column is correct. rows / regions not		
+// 
 			
 			
 			
 			
 			
+			
+			
+			
+// TYPE			
+				model.AddAllDifferent(column);
+				
+// => RUN	At least every column is correct. rows / regions not					
 			
 			
 			
@@ -139,13 +139,8 @@ namespace ConstraintOptimizationSudoku
 
 // PASTE
             // Constraint: all cells in each row contain a different value
-            for (int y = 0; y < field[0].Length; y++)
+            foreach (var row in FieldsHelper.GetRows(fields))
             {
-                var row = new IntVar[9];
-                for (int x = 0; x < field.Length; x++)
-                {
-                    row[x] = field[x][y];
-                }
                 model.AddAllDifferent(row);
             }
 // => RUN All columns and rows correct			
@@ -160,23 +155,12 @@ namespace ConstraintOptimizationSudoku
 
 
 // PASTE
-            // Constraint: all cells in each region contain a different value
-            for (int xBegin = 0; xBegin < 7; xBegin += 3)
+            // Constraint: all cells in each box contain a different value
+            foreach (var box in FieldsHelper.GetBoxes(fields))
             {
-                for (int yBegin = 0; yBegin < 7; yBegin += 3)
-                {
-                    var region = new List<IntVar>();
-                    for (int xOffset = 0; xOffset < 3; xOffset++)
-                    {
-                        for (int yOffset = 0; yOffset < 3; yOffset++)
-                        {
-                            region.Add(field[xBegin + xOffset][yBegin + yOffset]);
-                        }
-                    }
-                    model.AddAllDifferent(region);
-                }
+                model.AddAllDifferent(box);
             }
-// => RUN
+// => RUN All boxes are correct => valid generic Sudoku model
 
 
 
@@ -188,17 +172,11 @@ namespace ConstraintOptimizationSudoku
 
 // PASTE
             // Add constraints of our specific sudoku
-            for (int x = 0; x < 9; x++)
+            foreach (var cell in sudoku.GetCellsWithValue())
             {
-                for (int y = 0; y < 9; y++)
-                {
-                    if (sudoku.GetCell(x, y) != 0)
-                    {
-                        model.Add(field[x][y] == sudoku.GetCell(x, y));
-                    }
-                }
+                model.Add(fields[cell.X][cell.Y] == cell.Value);
             }
-// => RUN Load the data 
+// => RUN Load the data and add constraints for our specific sudoku
 
 
 
@@ -211,8 +189,7 @@ namespace ConstraintOptimizationSudoku
 ================================================================
 
 using System;
-using System.Collections.Generic;
-using ConstraintOptimization3.Data;
+using ConstraintOptimizationSudoku.Data;
 using Google.OrTools.Sat;
 
 namespace ConstraintOptimizationSudoku
@@ -221,92 +198,55 @@ namespace ConstraintOptimizationSudoku
     {
         public Sudoku Solve(Sudoku sudoku)
         {
-            // Initialize field 9x9
-            var field = new IntVar[9][];
-            for (int x = 0; x < field.Length; x++)
+            // Initialize fields 9x9
+            var fields = new IntVar[9][];
+            for (int x = 0; x < fields.Length; x++)
             {
-                field[x] = new IntVar[9];
+                fields[x] = new IntVar[9];
             }
 
             var model = new CpModel();
 
             // Constraint: Every cell contains a number 1-9
-            for (int x = 0; x < field.Length; x++)
+            foreach (var cell in sudoku.GetAllCells())
             {
-                for (int y = 0; y < field[x].Length; y++)
-                {
-                    // TODO: Add constraint for each field
-                    field[x][y] = model.NewIntVar(1, 9, $"{x}-{y}");
-                }
+                fields[cell.X][cell.Y] = model.NewIntVar(1, 9, $"{cell.X}-{cell.Y}");
             }
 
             // Constraints: all cells in each column contain a different value
-            for (int x = 0; x < field.Length; x++)
+            foreach (var column in FieldsHelper.GetColumns(fields))
             {
-                // hint: 2 dimensional array -> list of y-positions must be different 
-                var yPositions = field[x];
-                model.AddAllDifferent(yPositions);
+                model.AddAllDifferent(column);
             }
 
             // Constraint: all cells in each row contain a different value
-            for (int y = 0; y < field[0].Length; y++)
+            foreach (var row in FieldsHelper.GetRows(fields))
             {
-                var row = new IntVar[9];
-                for (int x = 0; x < field.Length; x++)
-                {
-                    row[x] = field[x][y];
-                }
                 model.AddAllDifferent(row);
             }
 
-            // Constraint: all cells in each region contain a different value
-            for (int xBegin = 0; xBegin < 7; xBegin += 3)
+            // Constraint: all cells in each box contain a different value
+            foreach (var box in FieldsHelper.GetBoxes(fields))
             {
-                for (int yBegin = 0; yBegin < 7; yBegin += 3)
-                {
-                    var region = new List<IntVar>();
-                    for (int xOffset = 0; xOffset < 3; xOffset++)
-                    {
-                        for (int yOffset = 0; yOffset < 3; yOffset++)
-                        {
-                            region.Add(field[xBegin + xOffset][yBegin + yOffset]);
-                        }
-                    }
-                    model.AddAllDifferent(region);
-                }
+                model.AddAllDifferent(box);
             }
 
             // Add constraints of our specific sudoku
-            for (int x = 0; x < 9; x++)
+            foreach (var cell in sudoku.GetCellsWithValue())
             {
-                for (int y = 0; y < 9; y++)
-                {
-                    if (sudoku.GetCell(x, y) != 0)
-                    {
-                        model.Add(field[x][y] == sudoku.GetCell(x, y));
-                    }
-                }
+                model.Add(fields[cell.X][cell.Y] == cell.Value);
             }
 
             // Solve
             var solver = new CpSolver();
             var status = solver.Solve(model);
-
-            var solution = new List<int>();
             if (status == CpSolverStatus.Optimal)
             {
-                for (int y = 0; y < 9; y++)
-                {
-                    for (int x = 0; x < 9; x++)
-                    {
-                        solution.Add((int)solver.Value(field[x][y]));
-                    }
-                }
-
+                var solution = FieldsHelper.GetFieldValuesFromSolver(solver, fields);
                 return new Sudoku(solution);
             }
 
             throw new InvalidOperationException("Sudoku not solvable");
         }
     }
-}}
+}

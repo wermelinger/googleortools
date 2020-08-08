@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -8,55 +7,58 @@ namespace ConstraintOptimizationSudoku.Data
 {
     public class Sudoku
     {
-        /// <summary>
-        /// The empty constructor assumes no mask
-        /// </summary>
-        public Sudoku()
-        {
-        }
+        private readonly Cell[][] cells = new Cell[9][];
 
         /// <summary>
         /// constructor that initializes the board with 81 cells
         /// </summary>
-        /// <param name="cells"></param>
-        public Sudoku(IEnumerable<int> cells)
+        /// <param name="cells">The cells to initialize the Sudoku. We use a list for easier access to cells,</param>
+        public Sudoku(IList<int> cells)
         {
-            var enumerable = cells.ToList();
-            if (enumerable.Count != 81)
+            var cellsList = cells.ToList();
+            if (cellsList.Count != 81)
             {
                 throw new ArgumentException("Sudoku should have exactly 81 cells", nameof(cells));
             }
-            Cells = new List<int>(enumerable);
+
+            // Initialize cells 9x9
+            for (int x = 0; x < 9; x++)
+            {
+                this.cells[x] = new Cell[9];
+            }
+            int y = 0;
+            for (int i = 0; i < 81; i++)
+            {
+                int x = i - (y * 9);
+                this.cells[x][y] = new Cell(x, y, cells[i]);
+                if ((i + 1) % 9 == 0)
+                {
+                    y++;
+                }
+            }
         }
 
-        // We use a list for easier access to cells,
-
         /// <summary>
-        /// Easy access by row and column number
+        /// Easy access by x and y
         /// </summary>
-        /// <param name="x">row number (between 0 and 8)</param>
-        /// <param name="y">column number (between 0 and 8)</param>
+        /// <param name="x">X coordinate (between 0 and 8)</param>
+        /// <param name="y">Y coordinate (between 0 and 8)</param>
         /// <returns>value of the cell</returns>
         public int GetCell(int x, int y)
         {
-            return Cells[9 * y + x];
+            return this.cells[x][y].Value;
         }
 
         /// <summary>
-        /// Easy setter by row and column number
+        /// Easy setter by x and y
         /// </summary>
-        /// <param name="x">row number (between 0 and 8)</param>
-        /// <param name="y">column number (between 0 and 8)</param>
+        /// <param name="x">X coordinate (between 0 and 8)</param>
+        /// <param name="y">Y coordinate (between 0 and 8)</param>
         /// <param name="value">value of the cell to set</param>
         public void SetCell(int x, int y, int value)
         {
-            Cells[9 * x + y] = value;
+            cells[x][y].Value = value;
         }
-
-        /// <summary>
-        /// Sudoku cells are initialized with zeros standing for empty cells
-        /// </summary>
-        public IList<int> Cells { get; set; } = Enumerable.Repeat(0, 81).ToList();
 
         /// <summary>
         /// Displays a Sudoku in an easy to read format
@@ -70,22 +72,20 @@ namespace ConstraintOptimizationSudoku.Data
             output.Append(lineSep);
             output.AppendLine();
 
-            for (int row = 1; row <= 9; row++)
+            for (int y = 0; y < 9; y++)
             {
                 // we start each line with |
                 output.Append("| ");
-                for (int column = 1; column <= 9; column++)
+                for (int x = 0; x < 9; x++)
                 {
-                    // we obtain the 81-cell index from the 9x9 row/column index
-                    var value = Cells[(row - 1) * 9 + (column - 1)];
+                    var value = this.cells[x][y].Value;
                     output.Append(value);
                     //we identify boxes with | within lines
-                    output.Append(column % 3 == 0 ? " | " : "  ");
+                    output.Append((x + 1) % 3 == 0 ? " | " : "  ");
                 }
-
+                
                 output.AppendLine();
-                //we identify boxes with - within columns
-                if (row % 3 == 0)
+                if ((y + 1) % 3 == 0)
                 {
                     output.Append(lineSep);
                 }
@@ -96,78 +96,14 @@ namespace ConstraintOptimizationSudoku.Data
             return output.ToString();
         }
 
-        /// <summary>
-        /// Parses a single Sudoku
-        /// </summary>
-        /// <param name="sudokuAsString">the string representing the sudoku</param>
-        /// <returns>the parsed sudoku</returns>
-        public Sudoku Parse(string sudokuAsString)
+        public IEnumerable<Cell> GetAllCells()
         {
-            return ParseMulti(new[] { sudokuAsString })[0];
+            return this.cells.SelectMany(x => x);
         }
 
-        /// <summary>
-        /// Parses a file with one or several sudokus
-        /// </summary>
-        /// <param name="fileName"></param>
-        /// <returns>the list of parsed Sudokus</returns>
-        public static List<Sudoku> ParseFile(string fileName)
+        public IEnumerable<Cell> GetCellsWithValue()
         {
-            return ParseMulti(File.ReadAllLines(fileName));
-        }
-
-        /// <summary>
-        /// Parses a list of lines into a list of sudoku, accounting for most cases usually encountered
-        /// </summary>
-        /// <param name="lines">the lines of string to parse</param>
-        /// <returns>the list of parsed Sudokus</returns>
-        public static List<Sudoku> ParseMulti(string[] lines)
-        {
-            var toReturn = new List<Sudoku>();
-            var cells = new List<int>(81);
-            // we ignore lines not starting with a sudoku character
-            foreach (var line in lines.Where(l => l.Length > 0
-                                                 && IsSudokuChar(l[0])))
-            {
-                foreach (char c in line)
-                {
-                    //we ignore lines not starting with cell chars
-                    if (IsSudokuChar(c))
-                    {
-                        if (char.IsDigit(c))
-                        {
-                            // if char is a digit, we add it to a cell
-                            cells.Add((int)char.GetNumericValue(c));
-                        }
-                        else
-                        {
-                            // if char represents an empty cell, we add 0
-                            cells.Add(0);
-                        }
-                    }
-                    // when 81 cells are entered, we create a sudoku and start collecting cells again.
-                    if (cells.Count == 81)
-                    {
-                        toReturn.Add(new Sudoku() { Cells = new List<int>(cells) });
-                        // we empty the current cell collector to start building a new Sudoku
-                        cells.Clear();
-                    }
-
-                }
-            }
-
-            return toReturn;
-        }
-
-
-        /// <summary>
-        /// identifies characters to be parsed into sudoku cells
-        /// </summary>
-        /// <param name="c">a character to test</param>
-        /// <returns>true if the character is a cell's char</returns>
-        private static bool IsSudokuChar(char c)
-        {
-            return char.IsDigit(c) || c == '.' || c == 'X' || c == '-';
+            return this.GetAllCells().Where(cell => cell.Value != 0);
         }
     }
 }
