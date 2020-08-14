@@ -15,11 +15,13 @@ namespace ConstraintOptimizationSimple
             var z = model.NewIntVar(0, 2, "z");
 
             // Constraint: Variables different
-            model.AddAllDifferent(new [] { x, y, z });
+            model.AddAllDifferent(new[] { x, y, z });
 
-            // Constraint: Unique order -> one solution
+            // Constraint: x lower y
             model.Add(x < y);
-            model.Add(y < z);
+
+            // Constraint: The bigger x, the better!
+            model.Maximize(x);
 
             // Solve: all feasible solutions
             var solver = new CpSolver();

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using ConstraintOptimizationSudoku.Data;
 using Google.OrTools.Sat;
 
@@ -28,37 +27,34 @@ namespace ConstraintOptimizationSudoku
             }
 
             // Constraints: all cells in each column contain a different value
-            foreach (var column in FieldsHelper.GetColumns(fields))
+            foreach (var numbersInColumn in FieldsHelper.GetColumns(fields))
             {
-                model.AddAllDifferent(column);
+                model.AddAllDifferent(numbersInColumn);
             }
 
             // Constraint: all cells in each row contain a different value
-            foreach (var row in FieldsHelper.GetRows(fields))
+            foreach (var numbersInRow in FieldsHelper.GetRows(fields))
             {
-                model.AddAllDifferent(row);
+                model.AddAllDifferent(numbersInRow);
             }
 
             // Constraint: all cells in each box contain a different value
-            foreach (var box in FieldsHelper.GetBoxes(fields))
+            foreach (var numbersInBox in FieldsHelper.GetBoxes(fields))
             {
-                model.AddAllDifferent(box);
+                model.AddAllDifferent(numbersInBox);
             }
 
             // Add constraints of our specific sudoku
-            foreach (var cell in sudoku.GetCellsWithValue())
+            foreach (var cellWithFixedNumber in sudoku.GetCellsWithValue())
             {
-                model.Add(fields[cell.X][cell.Y] == cell.Value);
+                model.Add(fields[cellWithFixedNumber.X][cellWithFixedNumber.Y] == cellWithFixedNumber.Value);
             }
 
             // Solve
             var solver = new CpSolver();
-            var status = solver.Solve(model);
-            if (status == CpSolverStatus.Optimal)
-            {
-                var solution = FieldsHelper.GetFieldValuesFromSolver(solver, fields);
-                return new Sudoku(solution);
-            }
+            solver.Solve(model);
+            var solution = FieldsHelper.GetFieldValuesFromSolver(solver, fields);
+            return new Sudoku(solution);
 
             throw new InvalidOperationException("Sudoku not solvable");
         }

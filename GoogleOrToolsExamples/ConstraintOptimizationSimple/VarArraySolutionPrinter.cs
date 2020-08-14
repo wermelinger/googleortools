@@ -5,7 +5,7 @@ namespace ConstraintOptimizationSimple
 {
     public class VarArraySolutionPrinter : CpSolverSolutionCallback
     {
-        private int solutionCount;
+        private int solutionCount = 1;
         private readonly IntVar[] variables;
 
         public VarArraySolutionPrinter(IntVar[] variables)
